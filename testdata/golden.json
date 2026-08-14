@@ -1,6 +1,6 @@
 [
-  {"ip": "8.8.8.8", "country_iso": "US", "asn": 15169},
-  {"ip": "1.1.1.1", "country_iso": "AU", "is_cdn": true},
+  {"ip": "8.8.8.8", "country_iso": "US", "city": "Mountain View", "asn": 15169},
+  {"ip": "1.1.1.1", "country_iso": "AU", "city": "Sydney", "is_cdn": true},
   {"ip": "9.9.9.9", "country_iso": "US"},
   {"ip": "104.16.0.1", "is_cdn": true, "is_hosting_provider": true},
   {"ip": "3.5.140.1", "is_hosting_provider": true}

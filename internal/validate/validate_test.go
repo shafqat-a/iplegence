@@ -18,6 +18,7 @@ func TestCheckOKAndFail(t *testing.T) {
 		Prefix: netip.MustParsePrefix("8.8.8.0/24"),
 		Rec: schema.Record{
 			Country: schema.Country{ISOCode: "US"},
+			City:    schema.City{Names: schema.Names{En: "Mountain View"}},
 			ASN:     schema.ASN{Number: 15169},
 			Traits:  schema.Traits{IsHostingProvider: true},
 		},
@@ -26,7 +27,7 @@ func TestCheckOKAndFail(t *testing.T) {
 		t.Fatal(err)
 	}
 	errs := validate.Check(dest, []validate.Expect{{
-		IP: "8.8.8.8", CountryISO: "US", ASN: 15169, Hosting: &hosting,
+		IP: "8.8.8.8", CountryISO: "US", City: "Mountain View", ASN: 15169, Hosting: &hosting,
 	}})
 	if len(errs) != 0 {
 		t.Fatalf("expected pass, got %v", errs)

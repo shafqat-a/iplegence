@@ -1,6 +1,6 @@
 # AGENTS.md — iplegence handoff
 
-Updated 2026-08-14 after Phase 0+1 implementation.
+Updated 2026-08-15 after Phase 2 live release.
 
 ## What this is
 
@@ -15,29 +15,20 @@ extractable text). A full transcript is
 
 ## What is already done
 
-1. Private repo created (`shafqat-a/iplegence`).
-2. Spec transcribed; Phase 0+1 plan written.
-3. Phase 0+1 Go pipeline implemented and pushed to `main` (12 commits after
-   the docs-only bootstrap). `go test ./...` passes locally.
-4. Artifacts produced by `make build`: `dist/Superior-IP.mmdb`,
-   `dist/Superior-IP.mmdb.sha256`, `dist/ATTRIBUTION.md`.
-5. Lookup CLI (`cmd/lookup`), golden-IP validator (`cmd/validate`),
-   CI (`.github/workflows/ci.yml`), daily release (`.github/workflows/daily.yml`).
+1. Phase 0+1 pipeline: download, merge, `Superior-IP.mmdb`, lookup CLI, validator, CI, daily release.
+2. Secrets in `.env`, GitHub Actions, and the encrypted `.agent-secrets/` vault.
+3. **Phase 2 live release** `v2026.08.14`: city + coordinates (GeoLite2-City, DB-IP City Lite),
+   Tor exits, iCloud Private Relay, OpenProxyDB + cloud ranges. Output **117.7 MB**
+   (target 80–150 MB). Golden IPs include city names.
+4. Attribution is generated every build.
 
-**No live production MMDB has been built yet.** There is no local `.env` and
-no GitHub Actions secrets, so IPinfo Lite cannot be downloaded.
+Skipped on purpose (size or license): ipapi.is (209 MB CSV), NordVPN single-IP lists,
+QQWry / China extra (license not cleared).
 
 ## What to do next
 
-1. Create `.env` from `.env.example` with `IPINFO_TOKEN` (required) and
-   optional `MAXMIND_LICENSE_KEY`.
-2. Add the same values as GitHub Actions secrets
-   (Settings → Secrets and variables → Actions).
-Phase 1 live build works. Next optional work is a new plan for Phase 2+
-(city/VPN), Phase 3 (HTTP API), or Phase 4 (dashboards). Do not start those
-until asked.
-
-Daily 01:00 UTC GitHub Actions still needs `IPINFO_TOKEN` (already set).
+Phase 3 — HTTP lookup API, rate limit, Docker — only when asked.
+Daily 01:00 UTC already has tokens and will republish `vYYYY.MM.DD`.
 
 ## Locked decisions (do not reopen unless the owner asks)
 

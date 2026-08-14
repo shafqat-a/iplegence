@@ -11,6 +11,7 @@ import (
 type Expect struct {
 	IP         string `json:"ip"`
 	CountryISO string `json:"country_iso"`
+	City       string `json:"city"`
 	ASN        uint32 `json:"asn"`
 	Hosting    *bool  `json:"is_hosting_provider"`
 	CDN        *bool  `json:"is_cdn"`
@@ -47,6 +48,9 @@ func Check(dbPath string, cases []Expect) []error {
 		}
 		if c.CountryISO != "" && rec.Country.ISOCode != c.CountryISO {
 			errs = append(errs, fmt.Errorf("%s: country %s want %s", c.IP, rec.Country.ISOCode, c.CountryISO))
+		}
+		if c.City != "" && rec.City.Names["en"] != c.City {
+			errs = append(errs, fmt.Errorf("%s: city %q want %s", c.IP, rec.City.Names["en"], c.City))
 		}
 		if c.ASN != 0 && rec.ASN.Number != c.ASN {
 			errs = append(errs, fmt.Errorf("%s: asn %d want %d", c.IP, rec.ASN.Number, c.ASN))
