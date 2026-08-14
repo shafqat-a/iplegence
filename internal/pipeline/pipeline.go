@@ -51,10 +51,7 @@ func Run(ctx context.Context, opt Options) error {
 		if !spec.Enabled {
 			continue
 		}
-		path := spec.Path
-		if spec.Kind == "maxmind_tar_gz" && spec.ExtractTo != "" {
-			path = spec.ExtractTo
-		}
+		path := spec.LoadPath()
 		if _, err := os.Stat(path); err != nil {
 			if spec.Required && !opt.SkipDownload {
 				return fmt.Errorf("required source %s missing file %s", spec.ID, path)

@@ -31,6 +31,17 @@ func TestASNPrefersIPinfoOverSapics(t *testing.T) {
 	}
 }
 
+func TestCityPrefersGeoLiteOverDBIP(t *testing.T) {
+	p := testdataPriority(t)
+	var dst schema.Record
+	w := map[string]string{}
+	merge.Merge(&dst, schema.Record{City: schema.City{Names: schema.Names{En: "Other"}}}, "dbip_city", p, w)
+	merge.Merge(&dst, schema.Record{City: schema.City{Names: schema.Names{En: "Mountain View"}}}, "geolite2_city", p, w)
+	if dst.City.Names.En != "Mountain View" {
+		t.Fatalf("got %s", dst.City.Names.En)
+	}
+}
+
 func TestCountryPrefersSapicsOverIPinfo(t *testing.T) {
 	p := testdataPriority(t)
 	var dst schema.Record

@@ -32,6 +32,8 @@ var adapters = map[string]Adapter{
 	"sapics_origin_asn": sapicsASNAdapter{},
 	"sapics_country":    sapicsCountryAdapter{},
 	"geolite2_asn":      geoliteAdapter{},
+	"geolite2_city":     cityAdapter{id: "geolite2_city"},
+	"dbip_city":         cityAdapter{id: "dbip_city"},
 	"iptoasn":           iptoasnAdapter{},
 	"openproxydb":       openproxyAdapter{},
 	"aws_ranges":        cloudAdapter{id: "aws_ranges"},
@@ -39,4 +41,6 @@ var adapters = map[string]Adapter{
 	"azure_ranges":      cloudAdapter{id: "azure_ranges"},
 	"cloudflare_v4":     cloudAdapter{id: "cloudflare_v4"},
 	"cloudflare_v6":     cloudAdapter{id: "cloudflare_v6"},
+	"tor_exits":         overlayAdapter{id: "tor_exits"},
+	"icloud_relay":      overlayAdapter{id: "icloud_relay"},
 }

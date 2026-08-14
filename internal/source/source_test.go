@@ -1,6 +1,7 @@
 package source_test
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -176,6 +177,80 @@ func TestSapicsCountryMMDB(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(blocks) != 1 || blocks[0].Rec.Country.ISOCode != "DE" {
+		t.Fatalf("got %#v", blocks)
+	}
+}
+
+func TestCityMMDB(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "city.mmdb")
+	writeTestMMDB(t, path, "8.8.8.0/24", mmdbtype.Map{
+		mmdbtype.String("country"): mmdbtype.Map{
+			mmdbtype.String("iso_code"): mmdbtype.String("US"),
+			mmdbtype.String("names"):    mmdbtype.Map{mmdbtype.String("en"): mmdbtype.String("United States")},
+		},
+		mmdbtype.String("city"): mmdbtype.Map{
+			mmdbtype.String("names"): mmdbtype.Map{mmdbtype.String("en"): mmdbtype.String("Mountain View")},
+		},
+		mmdbtype.String("location"): mmdbtype.Map{
+			mmdbtype.String("latitude"):  mmdbtype.Float64(37.386),
+			mmdbtype.String("longitude"): mmdbtype.Float64(-122.0838),
+			mmdbtype.String("time_zone"): mmdbtype.String("America/Los_Angeles"),
+		},
+	})
+	a, ok := source.Lookup("geolite2_city")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err := a.Load(path, config.SourceSpec{ID: "geolite2_city"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) != 1 {
+		t.Fatalf("got %d", len(blocks))
+	}
+	b := blocks[0]
+	if b.Rec.City.Names.En != "Mountain View" || b.Rec.Country.ISOCode != "US" || !b.Rec.Location.HasCoordinates {
+		t.Fatalf("got %#v", b.Rec)
+	}
+}
+
+func TestOverlayTorAndRelay(t *testing.T) {
+	dir := t.TempDir()
+	torPath := filepath.Join(dir, "tor.txt")
+	if err := os.WriteFile(torPath, []byte("185.220.101.1\n# comment\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, ok := source.Lookup("tor_exits")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err := a.Load(torPath, config.SourceSpec{
+		ID: "tor_exits", Kind: "lines",
+		Flags: config.Flags{IsTorExitNode: true, IsAnonymous: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) != 1 || !blocks[0].Rec.Traits.IsTorExitNode || blocks[0].Prefix.String() != "185.220.101.1/32" {
+		t.Fatalf("got %#v", blocks)
+	}
+
+	csvPath := filepath.Join(dir, "relay.csv")
+	if err := os.WriteFile(csvPath, []byte("egress_ip,country\n2.2.2.0/24,US\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, ok = source.Lookup("icloud_relay")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err = a.Load(csvPath, config.SourceSpec{
+		ID: "icloud_relay", Kind: "csv",
+		Flags: config.Flags{IsRelay: true, IsAnonymous: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) != 1 || !blocks[0].Rec.Traits.IsRelay || blocks[0].Prefix.String() != "2.2.2.0/24" {
 		t.Fatalf("got %#v", blocks)
 	}
 }

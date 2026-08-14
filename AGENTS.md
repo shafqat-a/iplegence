@@ -52,7 +52,7 @@ Daily 01:00 UTC GitHub Actions still needs `IPINFO_TOKEN` (already set).
 | Names | English only (`names.en`) |
 | Downloads | Official IPinfo + official MaxMind only. No P3TERX / unofficial GeoLite mirrors. |
 | Merge | Most-specific prefix = row identity; field priority from YAML; flags OR |
-| Country priority (Phase 1) | sapics country > IPinfo Lite > iptoasn |
+| Country priority (Phase 2) | GeoLite2-City > DB-IP City > sapics > IPinfo Lite > iptoasn |
 | ASN priority | IPinfo Lite > sapics origin-asn / iptoasn > GeoLite2-ASN |
 | Size | Abort if > 180 MB. Phase 1 target < 100 MB. Final sweet spot 80–150 MB. |
 | Phase 1 sources | IPinfo Lite, sapics origin-asn + geo-whois-asn-country, iptoasn, optional GeoLite2-ASN, OpenProxyDB, AWS/GCP/Azure/Cloudflare ranges |

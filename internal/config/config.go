@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -11,6 +12,11 @@ import (
 type Flags struct {
 	IsHostingProvider bool `yaml:"is_hosting_provider"`
 	IsCDN             bool `yaml:"is_cdn"`
+	IsAnonymousVPN    bool `yaml:"is_anonymous_vpn"`
+	IsTorExitNode     bool `yaml:"is_tor_exit_node"`
+	IsRelay           bool `yaml:"is_relay"`
+	IsAnonymous       bool `yaml:"is_anonymous"`
+	IsPublicProxy     bool `yaml:"is_public_proxy"`
 }
 
 type SourceSpec struct {
@@ -73,7 +79,19 @@ func Load(path string) (File, error) {
 }
 
 func (s SourceSpec) ExpandURL() string {
-	return os.ExpandEnv(s.URL)
+	return s.ExpandURLAt(time.Now().UTC())
+}
+
+func (s SourceSpec) ExpandURLAt(t time.Time) string {
+	u := strings.ReplaceAll(s.URL, "${YYYYMM}", t.UTC().Format("2006-01"))
+	return os.ExpandEnv(u)
+}
+
+func (s SourceSpec) LoadPath() string {
+	if s.ExtractTo != "" && (s.Kind == "maxmind_tar_gz" || s.Kind == "gzip") {
+		return s.ExtractTo
+	}
+	return s.Path
 }
 
 func (s SourceSpec) MissingEnv() []string {

@@ -56,6 +56,28 @@ sources:
     requires_env: [MAXMIND_LICENSE_KEY]
     required: false
 
+  - id: geolite2_city
+    enabled: true
+    kind: maxmind_tar_gz
+    url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=${MAXMIND_LICENSE_KEY}&suffix=tar.gz"
+    path: download/GeoLite2-City.tar.gz
+    extract_glob: "**/GeoLite2-City.mmdb"
+    extract_to: download/GeoLite2-City.mmdb
+    license: "CC BY-SA 4.0 + MaxMind GeoLite2 EULA"
+    attribution: "This product includes GeoLite2 Data created by MaxMind, available from https://www.maxmind.com."
+    requires_env: [MAXMIND_LICENSE_KEY]
+    required: false
+
+  - id: dbip_city
+    enabled: true
+    kind: gzip
+    url: "https://download.db-ip.com/free/dbip-city-lite-${YYYYMM}.mmdb.gz"
+    path: download/dbip-city-lite.mmdb.gz
+    extract_to: download/dbip-city-lite.mmdb
+    license: "CC BY 4.0"
+    attribution: "IP geolocation data from DB-IP (https://db-ip.com), licensed CC BY 4.0."
+    required: true
+
   - id: openproxydb
     enabled: true
     kind: csv
@@ -114,3 +136,23 @@ sources:
     attribution: "Cloudflare IPv6 ranges from https://www.cloudflare.com/ips-v6."
     flags: { is_cdn: true, is_hosting_provider: true }
     required: true
+
+  - id: tor_exits
+    enabled: true
+    kind: lines
+    url: "https://check.torproject.org/torbulkexitlist"
+    path: download/torbulkexitlist.txt
+    license: "Public"
+    attribution: "Tor exit nodes from https://check.torproject.org/torbulkexitlist."
+    flags: { is_tor_exit_node: true, is_anonymous: true }
+    required: false
+
+  - id: icloud_relay
+    enabled: true
+    kind: csv
+    url: "https://mask-api.icloud.com/egress-ip-ranges.csv"
+    path: download/icloud-egress-ip-ranges.csv
+    license: "Public"
+    attribution: "iCloud Private Relay egress ranges from https://mask-api.icloud.com/egress-ip-ranges.csv."
+    flags: { is_relay: true, is_anonymous: true }
+    required: false

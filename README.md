@@ -17,8 +17,8 @@ iptoasn, optional GeoLite2-ASN, OpenProxyDB, and official cloud ranges
 - `dist/Superior-IP.mmdb.sha256`
 - `dist/ATTRIBUTION.md`
 
-Phase 1 coverage is country + ASN + hosting/privacy flags. City, VPN lists,
-and the HTTP API are later phases.
+Phase 2 coverage is country + city + coordinates, ASN, hosting/privacy flags,
+Tor exits, and iCloud Private Relay. The HTTP API is Phase 3.
 
 ## Rebuild locally
 

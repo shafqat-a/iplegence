@@ -2,6 +2,7 @@ package download_test
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"io"
@@ -155,6 +156,42 @@ func TestFetchMaxMindTarGz(t *testing.T) {
 		t.Fatal(err)
 	}
 	if string(b) != "mmdb-bytes" {
+		t.Fatalf("got %q", b)
+	}
+}
+
+func TestFetchGzipExtracts(t *testing.T) {
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	if _, err := zw.Write([]byte("city-mmdb")); err != nil {
+		t.Fatal(err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(buf.Bytes())
+	}))
+	t.Cleanup(srv.Close)
+	dir := t.TempDir()
+	gzPath := filepath.Join(dir, "city.mmdb.gz")
+	out := filepath.Join(dir, "city.mmdb")
+	err := download.Fetch(context.Background(), config.SourceSpec{
+		ID:        "dbip_city",
+		Enabled:   true,
+		Kind:      "gzip",
+		URL:       srv.URL,
+		Path:      gzPath,
+		ExtractTo: out,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(b) != "city-mmdb" {
 		t.Fatalf("got %q", b)
 	}
 }

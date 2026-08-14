@@ -55,13 +55,33 @@ func Fetch(ctx context.Context, spec config.SourceSpec) error {
 		return err
 	}
 	if err := getToFile(ctx, url, spec.Path, timeout); err != nil {
-		return err
+		if strings.Contains(spec.URL, "${YYYYMM}") {
+			prev := spec.ExpandURLAt(time.Now().UTC().AddDate(0, -1, 0))
+			if prev != url {
+				if err2 := getToFile(ctx, prev, spec.Path, timeout); err2 == nil {
+					err = nil
+				} else {
+					err = fmt.Errorf("%v; previous month: %w", err, err2)
+				}
+			}
+		}
+		if err != nil {
+			return err
+		}
 	}
 	if spec.Kind == "maxmind_tar_gz" {
 		if spec.ExtractGlob == "" || spec.ExtractTo == "" {
 			return fmt.Errorf("%s: extract_glob and extract_to required", spec.ID)
 		}
 		if err := extractFirstMatch(spec.Path, spec.ExtractGlob, spec.ExtractTo); err != nil {
+			return err
+		}
+	}
+	if spec.Kind == "gzip" {
+		if spec.ExtractTo == "" {
+			return fmt.Errorf("%s: extract_to required", spec.ID)
+		}
+		if err := gunzipFile(spec.Path, spec.ExtractTo); err != nil {
 			return err
 		}
 	}
@@ -93,10 +113,7 @@ func FetchAll(ctx context.Context, cfg config.File) []Result {
 				defer cancel()
 			}
 			err := Fetch(srcCtx, spec)
-			path := spec.Path
-			if spec.Kind == "maxmind_tar_gz" && spec.ExtractTo != "" {
-				path = spec.ExtractTo
-			}
+			path := spec.LoadPath()
 			if err == nil && missingOptional(spec) {
 				path = ""
 			}
@@ -297,4 +314,44 @@ func extractFirstMatch(archive, glob, dest string) error {
 		return os.Rename(tmp, dest)
 	}
 	return fmt.Errorf("no file matching %q in %s", glob, archive)
+}
+
+func gunzipFile(src, dest string) error {
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+		return err
+	}
+	f, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+	tmp := dest + ".tmp"
+	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	_, copyErr := io.Copy(out, gz)
+	closeErr := out.Close()
+	if copyErr != nil {
+		os.Remove(tmp)
+		return copyErr
+	}
+	if closeErr != nil {
+		os.Remove(tmp)
+		return closeErr
+	}
+	info, err := os.Stat(tmp)
+	if err != nil {
+		return err
+	}
+	if info.Size() == 0 {
+		os.Remove(tmp)
+		return fmt.Errorf("gunzip produced empty file from %s", src)
+	}
+	return os.Rename(tmp, dest)
 }
