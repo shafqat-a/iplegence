@@ -2,8 +2,11 @@ package source
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"io"
 	"os"
+	"strings"
+	"unicode"
 
 	"github.com/shafqat-a/iplegence/internal/cidr"
 	"github.com/shafqat-a/iplegence/internal/config"
@@ -36,6 +39,10 @@ func (a overlayAdapter) Load(path string, spec config.SourceSpec) ([]cidr.Block,
 	switch spec.Kind {
 	case "csv":
 		prefixes, err = loadCSVFirstColumn(path)
+	case "ripe_announced":
+		prefixes, err = loadRipeAnnounced(path)
+	case "nordvpn_json":
+		prefixes, err = loadNordVPN(path)
 	default:
 		prefixes, err = loadLines(path)
 	}
@@ -76,14 +83,83 @@ func loadCSVFirstColumn(path string) ([]string, error) {
 		if len(rec) == 0 {
 			continue
 		}
-		cell := rec[0]
+		cell := firstPrefixToken(rec[0])
 		if first {
 			first = false
-			if _, err := prefixFromString(cell); err != nil {
+			if cell == "" {
 				continue // header
 			}
 		}
-		out = append(out, cell)
+		if cell != "" {
+			out = append(out, cell)
+		}
+	}
+	return out, nil
+}
+
+func firstPrefixToken(line string) string {
+	fields := strings.FieldsFunc(strings.TrimSpace(line), func(r rune) bool {
+		return r == '|' || r == ',' || unicode.IsSpace(r)
+	})
+	for _, f := range fields {
+		f = strings.Trim(f, `"'`)
+		if _, err := prefixFromString(f); err == nil {
+			return f
+		}
+	}
+	return ""
+}
+
+func loadRipeAnnounced(path string) ([]string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var doc struct {
+		Data struct {
+			Prefixes []struct {
+				Prefix string `json:"prefix"`
+			} `json:"prefixes"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(b, &doc); err != nil {
+		return nil, err
+	}
+	var out []string
+	for _, p := range doc.Data.Prefixes {
+		if p.Prefix != "" {
+			out = append(out, p.Prefix)
+		}
+	}
+	return out, nil
+}
+
+func loadNordVPN(path string) ([]string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var servers []struct {
+		Station string `json:"station"`
+		IPs     []struct {
+			IP struct {
+				IP string `json:"ip"`
+			} `json:"ip"`
+		} `json:"ips"`
+	}
+	if err := json.Unmarshal(b, &servers); err != nil {
+		return nil, err
+	}
+	var out []string
+	for _, s := range servers {
+		if s.Station != "" {
+			out = append(out, s.Station)
+		}
+		for _, ip := range s.IPs {
+			if ip.IP.IP != "" {
+				out = append(out, ip.IP.IP)
+			}
+		}
 	}
 	return out, nil
 }

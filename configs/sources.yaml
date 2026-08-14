@@ -1,7 +1,7 @@
 download_dir: download
 output_dir: dist
 output_name: Superior-IP.mmdb
-max_bytes: 188743680   # 180 MiB
+max_bytes: 1073741824   # 1 GiB
 download_timeout_seconds: 900
 download_retries: 3
 download_concurrency: 6
@@ -178,3 +178,53 @@ sources:
     attribution: "iCloud Private Relay egress ranges from https://mask-api.icloud.com/egress-ip-ranges.csv."
     flags: { is_relay: true, is_anonymous: true }
     required: false
+
+  - id: x4b_vpn
+    enabled: true
+    kind: lines
+    url: "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
+    path: download/x4b-vpn-ipv4.txt
+    license: "MIT"
+    attribution: "VPN network list from X4BNet/lists_vpn (https://github.com/X4BNet/lists_vpn)."
+    flags: { is_anonymous_vpn: true, is_anonymous: true }
+    required: true
+
+  - id: nordvpn
+    enabled: true
+    kind: nordvpn_json
+    url: "https://api.nordvpn.com/v1/servers?limit=16384"
+    path: download/nordvpn-servers.json
+    license: "Public"
+    attribution: "NordVPN server addresses from https://api.nordvpn.com/v1/servers."
+    flags: { is_anonymous_vpn: true, is_anonymous: true }
+    required: false
+
+  - id: digitalocean_ranges
+    enabled: true
+    kind: csv
+    url: "https://digitalocean.com/geo/google.csv"
+    path: download/digitalocean-geo.csv
+    license: "Public"
+    attribution: "DigitalOcean IP ranges from https://digitalocean.com/geo/google.csv."
+    flags: { is_hosting_provider: true }
+    required: true
+
+  - id: ovh_ranges
+    enabled: true
+    kind: ripe_announced
+    url: "https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS16276"
+    path: download/ovh-as16276.json
+    license: "Public"
+    attribution: "OVHcloud announced prefixes via RIPEstat AS16276 (https://stat.ripe.net/)."
+    flags: { is_hosting_provider: true }
+    required: true
+
+  - id: hetzner_ranges
+    enabled: true
+    kind: ripe_announced
+    url: "https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS24940"
+    path: download/hetzner-as24940.json
+    license: "Public"
+    attribution: "Hetzner announced prefixes via RIPEstat AS24940 (https://stat.ripe.net/)."
+    flags: { is_hosting_provider: true }
+    required: true

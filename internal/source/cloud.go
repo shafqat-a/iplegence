@@ -128,7 +128,9 @@ func loadLines(path string) ([]string, error) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		out = append(out, line)
+		if p := firstPrefixToken(line); p != "" {
+			out = append(out, p)
+		}
 	}
 	return out, sc.Err()
 }

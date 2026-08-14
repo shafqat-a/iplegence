@@ -22,9 +22,8 @@ extractable text). A full transcript is
    (target 80–150 MB). Golden IPs include city names.
 4. Attribution is generated every build.
 
-ipapi.is free geo is a Phase 2 source (input zip is large; that is not the
-180 MB *output* abort). NordVPN single-IP lists and QQWry stay out (dump size /
-license).
+Output abort is 1 GiB. Include every spec source that is legally redistributable.
+QQWry/Chunzhen stays out unless a redistributable license is confirmed.
 
 ## What to do next
 
@@ -46,7 +45,7 @@ Daily 01:00 UTC already has tokens and will republish `vYYYY.MM.DD`.
 | Merge | Most-specific prefix = row identity; field priority from YAML; flags OR |
 | Country priority (Phase 2) | GeoLite2-City > DB-IP City > sapics > IPinfo Lite > iptoasn |
 | ASN priority | IPinfo Lite > sapics origin-asn / iptoasn > GeoLite2-ASN |
-| Size | Abort if > 180 MB. Phase 1 target < 100 MB. Final sweet spot 80–150 MB. |
+| Size | Abort if > 1 GiB (owner: 2026-08-15). |
 | Phase 1 sources | IPinfo Lite, sapics origin-asn + geo-whois-asn-country, iptoasn, optional GeoLite2-ASN, OpenProxyDB, AWS/GCP/Azure/Cloudflare ranges |
 | Out of Phase 1 | GeoLite2-City, DB-IP City, ipapi.is, VPN lists, QQWry, HTTP API |
 | Code license | Apache-2.0. Data remains per-source. |

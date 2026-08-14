@@ -44,5 +44,10 @@ var adapters = map[string]Adapter{
 	"cloudflare_v4":     cloudAdapter{id: "cloudflare_v4"},
 	"cloudflare_v6":     cloudAdapter{id: "cloudflare_v6"},
 	"tor_exits":         overlayAdapter{id: "tor_exits"},
-	"icloud_relay":      overlayAdapter{id: "icloud_relay"},
+	"icloud_relay":        overlayAdapter{id: "icloud_relay"},
+	"x4b_vpn":             overlayAdapter{id: "x4b_vpn"},
+	"nordvpn":             overlayAdapter{id: "nordvpn"},
+	"digitalocean_ranges": overlayAdapter{id: "digitalocean_ranges"},
+	"ovh_ranges":          overlayAdapter{id: "ovh_ranges"},
+	"hetzner_ranges":      overlayAdapter{id: "hetzner_ranges"},
 }

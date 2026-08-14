@@ -64,7 +64,7 @@ func Load(path string) (File, error) {
 		f.OutputName = "Superior-IP.mmdb"
 	}
 	if f.MaxBytes == 0 {
-		f.MaxBytes = 188743680
+		f.MaxBytes = 1073741824
 	}
 	if f.DownloadTimeoutSeconds == 0 {
 		f.DownloadTimeoutSeconds = 300

@@ -18,7 +18,7 @@ func TestLoadSourcesYAML(t *testing.T) {
 	if cfg.OutputName != "Superior-IP.mmdb" {
 		t.Fatalf("output name %q", cfg.OutputName)
 	}
-	if cfg.MaxBytes != 188743680 {
+	if cfg.MaxBytes != 1073741824 {
 		t.Fatalf("max_bytes %d", cfg.MaxBytes)
 	}
 	if len(cfg.Sources) < 10 {

@@ -235,6 +235,50 @@ func TestCityMMDB(t *testing.T) {
 	}
 }
 
+func TestNordVPNJSON(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "nord.json")
+	if err := os.WriteFile(p, []byte(`[{"station":"1.2.3.4","ips":[{"ip":{"ip":"5.6.7.8"}}]}]`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, ok := source.Lookup("nordvpn")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err := a.Load(p, config.SourceSpec{
+		ID: "nordvpn", Kind: "nordvpn_json",
+		Flags: config.Flags{IsAnonymousVPN: true, IsAnonymous: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) != 2 {
+		t.Fatalf("got %d %#v", len(blocks), blocks)
+	}
+}
+
+func TestRipeAnnounced(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "ripe.json")
+	if err := os.WriteFile(p, []byte(`{"data":{"prefixes":[{"prefix":"15.0.0.0/8"}]}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, ok := source.Lookup("ovh_ranges")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err := a.Load(p, config.SourceSpec{
+		ID: "ovh_ranges", Kind: "ripe_announced",
+		Flags: config.Flags{IsHostingProvider: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) != 1 || blocks[0].Prefix.String() != "15.0.0.0/8" || !blocks[0].Rec.Traits.IsHostingProvider {
+		t.Fatalf("got %#v", blocks)
+	}
+}
+
 func TestOverlayTorAndRelay(t *testing.T) {
 	dir := t.TempDir()
 	torPath := filepath.Join(dir, "tor.txt")
