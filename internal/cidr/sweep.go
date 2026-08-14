@@ -21,6 +21,12 @@ type mergedSpan struct {
 	rec        schema.Record
 }
 
+type sweepEvent struct {
+	pos netip.Addr
+	end bool
+	idx int
+}
+
 func MergeBlocks(blocks []Block, p merge.Priority) ([]Row, error) {
 	var v4, v6 []intervalBlock
 	for _, b := range blocks {
@@ -44,34 +50,53 @@ func sweepFamily(blocks []intervalBlock, p merge.Priority) []mergedSpan {
 	if len(blocks) == 0 {
 		return nil
 	}
-	points := make([]netip.Addr, 0, len(blocks)*2)
-	for _, b := range blocks {
-		points = append(points, b.start, b.end)
+	evs := make([]sweepEvent, 0, len(blocks)*2)
+	for i, b := range blocks {
+		evs = append(evs, sweepEvent{pos: b.start, end: false, idx: i})
+		evs = append(evs, sweepEvent{pos: b.end, end: true, idx: i})
 	}
-	slices.SortFunc(points, addrCmp)
-	points = slices.CompactFunc(points, func(a, b netip.Addr) bool {
-		return addrCmp(a, b) == 0
+	slices.SortFunc(evs, func(a, b sweepEvent) int {
+		if c := addrCmp(a.pos, b.pos); c != 0 {
+			return c
+		}
+		if a.end != b.end {
+			if a.end {
+				return -1
+			}
+			return 1
+		}
+		return 0
 	})
 
+	active := make(map[int]struct{}, 8)
+	var last netip.Addr
+	haveLast := false
 	var out []mergedSpan
-	for i := 0; i+1 < len(points); i++ {
-		lo, hi := points[i], points[i+1]
-		if addrCmp(lo, hi) == 0 {
-			continue
-		}
-		var dst schema.Record
-		winners := map[string]string{}
-		any := false
-		for _, b := range blocks {
-			if addrCmp(b.start, lo) <= 0 && addrCmp(hi, b.end) <= 0 {
+
+	i := 0
+	for i < len(evs) {
+		pos := evs[i].pos
+		if haveLast && addrCmp(last, pos) != 0 && len(active) > 0 {
+			var dst schema.Record
+			winners := map[string]string{}
+			for idx := range active {
+				b := blocks[idx]
 				merge.Merge(&dst, b.rec, b.source, p, winners)
-				any = true
+			}
+			if !dst.IsEmpty() {
+				out = append(out, mergedSpan{start: last, end: pos, rec: dst})
 			}
 		}
-		if !any || dst.IsEmpty() {
-			continue
+		for i < len(evs) && addrCmp(evs[i].pos, pos) == 0 {
+			if evs[i].end {
+				delete(active, evs[i].idx)
+			} else {
+				active[evs[i].idx] = struct{}{}
+			}
+			i++
 		}
-		out = append(out, mergedSpan{start: lo, end: hi, rec: dst})
+		last = pos
+		haveLast = true
 	}
 	return out
 }
