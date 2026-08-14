@@ -33,13 +33,11 @@ no GitHub Actions secrets, so IPinfo Lite cannot be downloaded.
    optional `MAXMIND_LICENSE_KEY`.
 2. Add the same values as GitHub Actions secrets
    (Settings → Secrets and variables → Actions).
-3. Run a first live build: `set -a; source .env; set +a; make build && make validate`.
-4. Optionally dispatch the `daily` workflow once secrets exist
-   (`gh workflow run daily.yml`) so the first GitHub Release is published.
-5. Confirm CI on `main` is green.
+Phase 1 live build works. Next optional work is a new plan for Phase 2+
+(city/VPN), Phase 3 (HTTP API), or Phase 4 (dashboards). Do not start those
+until asked.
 
-Do **not** start Phase 2 (city/VPN), Phase 3 (HTTP API), or Phase 4
-(dashboards) until a live `Superior-IP.mmdb` + daily GitHub Release exists.
+Daily 01:00 UTC GitHub Actions still needs `IPINFO_TOKEN` (already set).
 
 ## Locked decisions (do not reopen unless the owner asks)
 
