@@ -51,6 +51,8 @@ the current `Superior-IP.mmdb`.
 docker build -t iplegence:latest .
 docker run --rm -p 8080:8080 iplegence:latest
 # or: docker compose up --build
+# published image:
+# docker pull ghcr.io/shafqat-a/iplegence:latest
 ```
 
 ```bash
