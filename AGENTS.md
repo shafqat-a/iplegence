@@ -1,6 +1,6 @@
 # AGENTS.md — iplegence handoff
 
-Written 2026-08-14 for the next human or agent on another machine.
+Updated 2026-08-14 after Phase 0+1 implementation.
 
 ## What this is
 
@@ -15,27 +15,37 @@ extractable text). A full transcript is
 
 ## What is already done
 
-1. Private repo created and cloned to `~/git/iplegence` on the first machine.
-2. Spec PDF copied to `doc/spec/grok_report.pdf`.
-3. Spec transcribed to markdown.
-4. Phase 0+1 implementation plan written (12 tasks, TDD-style).
-5. This session’s chat and knowledge exported under `doc/session/` and `doc/handoff/`.
+1. Private repo created (`shafqat-a/iplegence`).
+2. Spec transcribed; Phase 0+1 plan written.
+3. Phase 0+1 Go pipeline implemented and pushed to `main` (12 commits after
+   the docs-only bootstrap). `go test ./...` passes locally.
+4. Artifacts produced by `make build`: `dist/Superior-IP.mmdb`,
+   `dist/Superior-IP.mmdb.sha256`, `dist/ATTRIBUTION.md`.
+5. Lookup CLI (`cmd/lookup`), golden-IP validator (`cmd/validate`),
+   CI (`.github/workflows/ci.yml`), daily release (`.github/workflows/daily.yml`).
 
-**No application code has been written.** No `go.mod` yet. The plan is the next step.
+**No live production MMDB has been built yet.** There is no local `.env` and
+no GitHub Actions secrets, so IPinfo Lite cannot be downloaded.
 
 ## What to do next
 
-Execute `docs/superpowers/plans/2026-08-14-phase0-1-mvp-pipeline.md`.
+1. Create `.env` from `.env.example` with `IPINFO_TOKEN` (required) and
+   optional `MAXMIND_LICENSE_KEY`.
+2. Add the same values as GitHub Actions secrets
+   (Settings → Secrets and variables → Actions).
+3. Run a first live build: `set -a; source .env; set +a; make build && make validate`.
+4. Optionally dispatch the `daily` workflow once secrets exist
+   (`gh workflow run daily.yml`) so the first GitHub Release is published.
+5. Confirm CI on `main` is green.
 
-Recommended: subagent-driven development, one task at a time, review between tasks.
-Do **not** start Phase 2 (city/VPN), Phase 3 (HTTP API), or Phase 4 (dashboards)
-until Phase 0+1 produces `Superior-IP.mmdb` + daily GitHub Release.
+Do **not** start Phase 2 (city/VPN), Phase 3 (HTTP API), or Phase 4
+(dashboards) until a live `Superior-IP.mmdb` + daily GitHub Release exists.
 
 ## Locked decisions (do not reopen unless the owner asks)
 
 | Topic | Decision |
 |-------|----------|
-| Language | Go 1.24+ (`mmdbwriter` + `maxminddb-golang`) |
+| Language | Go 1.24+ (`mmdbwriter` + `maxminddb-golang/v2`). `go.mod` is 1.25 because `maxminddb-golang/v2 v2.5.0` requires it. |
 | Module path | `github.com/shafqat-a/iplegence` |
 | Base | **Start fresh.** Do not fork NetworkCats/Merged-IP-Data. Reference its pipeline shape only. |
 | Output name | `Superior-IP.mmdb` + `.sha256` + `ATTRIBUTION.md` |
@@ -98,8 +108,8 @@ Steal the ideas: download → normalize to CIDR → field merge → collapse adj
 
 - Date: 2026-08-14
 - First machine workspace: `/home/shafqat`
-- Grok session id: `01a000cd-ad0d-7963-9355-57e14518e3e9`
-- Model: grok-4.6
+- Implementation workspace: `/home/shafqat/git/iplegence`
+- First Grok session id: `01a000cd-ad0d-7963-9355-57e14518e3e9`
 - Chat export: `doc/session/chat.md`
 - Knowledge dump: `doc/handoff/2026-08-14-knowledge.md`
 
