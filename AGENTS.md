@@ -22,8 +22,9 @@ extractable text). A full transcript is
    (target 80–150 MB). Golden IPs include city names.
 4. Attribution is generated every build.
 
-Skipped on purpose (size or license): ipapi.is (209 MB CSV), NordVPN single-IP lists,
-QQWry / China extra (license not cleared).
+ipapi.is free geo is a Phase 2 source (input zip is large; that is not the
+180 MB *output* abort). NordVPN single-IP lists and QQWry stay out (dump size /
+license).
 
 ## What to do next
 

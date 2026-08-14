@@ -2,7 +2,7 @@ download_dir: download
 output_dir: dist
 output_name: Superior-IP.mmdb
 max_bytes: 188743680   # 180 MiB
-download_timeout_seconds: 300
+download_timeout_seconds: 900
 download_retries: 3
 download_concurrency: 6
 
@@ -76,6 +76,28 @@ sources:
     extract_to: download/dbip-city-lite.mmdb
     license: "CC BY 4.0"
     attribution: "IP geolocation data from DB-IP (https://db-ip.com), licensed CC BY 4.0."
+    required: true
+
+  - id: ipapi_city_v4
+    enabled: true
+    kind: zip
+    url: "https://ipapi.is/data/geolocationDatabaseIPv4.csv.zip"
+    path: download/geolocationDatabaseIPv4.csv.zip
+    extract_to: download/geolocationDatabaseIPv4.csv
+    extract_glob: "*.csv"
+    license: "Free download (ipapi.is)"
+    attribution: "IP geolocation data from ipapi.is (https://ipapi.is/)."
+    required: true
+
+  - id: ipapi_city_v6
+    enabled: true
+    kind: zip
+    url: "https://ipapi.is/data/geolocationDatabaseIPv6.csv.zip"
+    path: download/geolocationDatabaseIPv6.csv.zip
+    extract_to: download/geolocationDatabaseIPv6.csv
+    extract_glob: "*.csv"
+    license: "Free download (ipapi.is)"
+    attribution: "IP geolocation data from ipapi.is (https://ipapi.is/)."
     required: true
 
   - id: openproxydb

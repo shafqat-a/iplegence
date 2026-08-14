@@ -2,6 +2,7 @@ package download
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"compress/gzip"
 	"context"
 	"errors"
@@ -82,6 +83,14 @@ func Fetch(ctx context.Context, spec config.SourceSpec) error {
 			return fmt.Errorf("%s: extract_to required", spec.ID)
 		}
 		if err := gunzipFile(spec.Path, spec.ExtractTo); err != nil {
+			return err
+		}
+	}
+	if spec.Kind == "zip" {
+		if spec.ExtractTo == "" {
+			return fmt.Errorf("%s: extract_to required", spec.ID)
+		}
+		if err := extractZipFirst(spec.Path, spec.ExtractGlob, spec.ExtractTo); err != nil {
 			return err
 		}
 	}
@@ -354,4 +363,66 @@ func gunzipFile(src, dest string) error {
 		return fmt.Errorf("gunzip produced empty file from %s", src)
 	}
 	return os.Rename(tmp, dest)
+}
+
+func extractZipFirst(archive, glob, dest string) error {
+	r, err := zip.OpenReader(archive)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	for _, f := range r.File {
+		if f.FileInfo().IsDir() {
+			continue
+		}
+		name := filepath.ToSlash(f.Name)
+		if glob != "" {
+			ok, err := filepath.Match(filepath.ToSlash(glob), name)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				if gok, _ := filepath.Match(filepath.Base(glob), filepath.Base(name)); !gok {
+					continue
+				}
+			}
+		} else if !strings.HasSuffix(strings.ToLower(name), ".csv") {
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+			rc.Close()
+			return err
+		}
+		tmp := dest + ".tmp"
+		out, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+		if err != nil {
+			rc.Close()
+			return err
+		}
+		_, copyErr := io.Copy(out, rc)
+		closeOut := out.Close()
+		rc.Close()
+		if copyErr != nil {
+			os.Remove(tmp)
+			return copyErr
+		}
+		if closeOut != nil {
+			os.Remove(tmp)
+			return closeOut
+		}
+		info, err := os.Stat(tmp)
+		if err != nil {
+			return err
+		}
+		if info.Size() == 0 {
+			os.Remove(tmp)
+			return fmt.Errorf("extracted empty file from %s", archive)
+		}
+		return os.Rename(tmp, dest)
+	}
+	return fmt.Errorf("no CSV member in %s", archive)
 }

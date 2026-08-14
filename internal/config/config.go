@@ -88,7 +88,7 @@ func (s SourceSpec) ExpandURLAt(t time.Time) string {
 }
 
 func (s SourceSpec) LoadPath() string {
-	if s.ExtractTo != "" && (s.Kind == "maxmind_tar_gz" || s.Kind == "gzip") {
+	if s.ExtractTo != "" && (s.Kind == "maxmind_tar_gz" || s.Kind == "gzip" || s.Kind == "zip") {
 		return s.ExtractTo
 	}
 	return s.Path

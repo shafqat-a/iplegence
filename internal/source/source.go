@@ -34,6 +34,8 @@ var adapters = map[string]Adapter{
 	"geolite2_asn":      geoliteAdapter{},
 	"geolite2_city":     cityAdapter{id: "geolite2_city"},
 	"dbip_city":         cityAdapter{id: "dbip_city"},
+	"ipapi_city_v4":     ipapiAdapter{id: "ipapi_city_v4"},
+	"ipapi_city_v6":     ipapiAdapter{id: "ipapi_city_v6"},
 	"iptoasn":           iptoasnAdapter{},
 	"openproxydb":       openproxyAdapter{},
 	"aws_ranges":        cloudAdapter{id: "aws_ranges"},

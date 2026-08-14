@@ -181,6 +181,27 @@ func TestSapicsCountryMMDB(t *testing.T) {
 	}
 }
 
+func TestIPapiCSV(t *testing.T) {
+	a, ok := source.Lookup("ipapi_city_v4")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err := a.Load(testdata(t, "ipapi.csv"), config.SourceSpec{ID: "ipapi_city_v4"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) == 0 {
+		t.Fatal("no blocks")
+	}
+	b := blocks[0]
+	if b.Source != "ipapi_city_v4" || b.Rec.Country.ISOCode != "US" || b.Rec.City.Names.En != "Mountain View" {
+		t.Fatalf("got %#v", b)
+	}
+	if !b.Rec.Location.HasCoordinates || b.Rec.Location.TimeZone != "America/Los_Angeles" {
+		t.Fatalf("location %#v", b.Rec.Location)
+	}
+}
+
 func TestCityMMDB(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "city.mmdb")
 	writeTestMMDB(t, path, "8.8.8.0/24", mmdbtype.Map{
