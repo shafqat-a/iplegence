@@ -29,10 +29,10 @@ sources:
   - id: sapics_country
     enabled: true
     kind: mmdb
-    url: "https://github.com/sapics/ip-location-db/releases/download/latest/geo-whois-asn-country.mmdb"
-    path: download/geo-whois-asn-country.mmdb
+    url: "https://github.com/sapics/ip-location-db/releases/download/latest/user-country.mmdb"
+    path: download/user-country.mmdb
     license: "PDDL"
-    attribution: "Country data from sapics/ip-location-db geo-whois-asn-country (https://github.com/sapics/ip-location-db)."
+    attribution: "Country data from sapics/ip-location-db user-country (https://github.com/sapics/ip-location-db)."
     required: true
 
   - id: iptoasn

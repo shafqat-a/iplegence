@@ -79,7 +79,7 @@ Do not commit tokens. Do not commit `download/` or `dist/` or `*.mmdb` except fi
 | IPinfo Lite download | `https://ipinfo.io/data/ipinfo_lite.mmdb?token=$IPINFO_TOKEN` |
 | MaxMind GeoLite2-ASN | `https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN&license_key=$MAXMIND_LICENSE_KEY&suffix=tar.gz` |
 | sapics origin-asn | https://github.com/sapics/ip-location-db/releases/download/latest/origin-asn.mmdb |
-| sapics country | https://github.com/sapics/ip-location-db/releases/download/latest/geo-whois-asn-country.mmdb |
+| sapics country | https://github.com/sapics/ip-location-db/releases/download/latest/user-country.mmdb |
 | iptoasn combined | https://iptoasn.com/data/ip2asn-combined.tsv.gz (fallback: `ip2asn-v4.tsv.gz` + `ip2asn-v6.tsv.gz`) |
 | OpenProxyDB | https://github.com/NetworkCats/OpenProxyDB/releases/latest/download/proxy_blocks.csv |
 | AWS ranges | https://ip-ranges.amazonaws.com/ip-ranges.json |
