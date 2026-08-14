@@ -63,6 +63,24 @@ func TestOpenProxy(t *testing.T) {
 	}
 }
 
+func TestOpenProxyCurrentHeader(t *testing.T) {
+	a, ok := source.Lookup("openproxydb")
+	if !ok {
+		t.Fatal("missing adapter")
+	}
+	blocks, err := a.Load(testdata(t, "openproxy-current.csv"), config.SourceSpec{ID: "openproxydb"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blocks) != 1 {
+		t.Fatalf("got %d", len(blocks))
+	}
+	b := blocks[0]
+	if b.Prefix.String() != "4.5.6.0/24" || !b.Rec.Traits.IsPublicProxy || !b.Rec.Traits.IsCDN || !b.Rec.Traits.IsHostingProvider {
+		t.Fatalf("got %#v", b)
+	}
+}
+
 func TestCloudAdapters(t *testing.T) {
 	cases := []struct {
 		id, file, pfx string

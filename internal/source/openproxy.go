@@ -34,19 +34,23 @@ func (openproxyAdapter) Load(path string, spec config.SourceSpec) ([]cidr.Block,
 	for i, h := range header {
 		idx[strings.ToLower(strings.TrimSpace(h))] = i
 	}
-	col := func(name string) int {
-		i, ok := idx[name]
-		if !ok {
-			return -1
+	col := func(names ...string) int {
+		for _, name := range names {
+			if i, ok := idx[name]; ok {
+				return i
+			}
 		}
-		return i
+		return -1
 	}
-	iNet, iCIDR := col("network"), col("cidr")
+	iNet := col("network", "cidr", "ip")
 	iStart, iEnd := col("start"), col("end")
-	iProxy, iVPN := col("is_proxy"), col("is_vpn")
-	iTor, iHost := col("is_tor"), col("is_hosting")
-	iCDN, iAnon := col("is_cdn"), col("is_anonymous")
-	iRelay := col("is_relay")
+	iProxy := col("is_proxy", "proxy")
+	iVPN := col("is_vpn", "vpn")
+	iTor := col("is_tor", "tor")
+	iHost := col("is_hosting", "webhost", "hosting")
+	iCDN := col("is_cdn", "cdn")
+	iAnon := col("is_anonymous", "anonblock", "anonymous")
+	iRelay := col("is_relay", "relay")
 	get := func(rec []string, i int) string {
 		if i < 0 || i >= len(rec) {
 			return ""
@@ -76,7 +80,7 @@ func (openproxyAdapter) Load(path string, spec config.SourceSpec) ([]cidr.Block,
 			continue
 		}
 		var prefs []netip.Prefix
-		if p := firstNonEmpty(get(rec, iNet), get(rec, iCIDR)); p != "" {
+		if p := firstNonEmpty(get(rec, iNet)); p != "" {
 			pfx, err := prefixFromString(p)
 			if err != nil {
 				continue
