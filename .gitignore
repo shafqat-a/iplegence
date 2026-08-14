@@ -1,0 +1,7 @@
+/download/
+/dist/
+.env
+*.mmdb
+!testdata/**/*.mmdb
+*.tmp
+.DS_Store
