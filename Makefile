@@ -1,4 +1,4 @@
-.PHONY: test build lookup validate
+.PHONY: test build lookup validate serve docker docker-run
 
 test:
 	go test ./...
@@ -11,3 +11,12 @@ lookup:
 
 validate:
 	go run ./cmd/validate dist/Superior-IP.mmdb
+
+serve:
+	go run ./cmd/serve
+
+docker:
+	docker build -t iplegence:latest .
+
+docker-run:
+	docker run --rm -p 8080:8080 iplegence:latest

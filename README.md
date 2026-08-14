@@ -42,6 +42,33 @@ GitHub Actions secrets (Settings → Secrets and variables → Actions):
 
 Do not commit `.env`, `download/`, `dist/`, or production `*.mmdb` files.
 
+## Docker
+
+One image contains `serve`, `lookup`, `validate`, `build`, the configs, and
+the current `Superior-IP.mmdb`.
+
+```bash
+docker build -t iplegence:latest .
+docker run --rm -p 8080:8080 iplegence:latest
+# or: docker compose up --build
+```
+
+```bash
+curl -s http://127.0.0.1:8080/health
+curl -s http://127.0.0.1:8080/lookup/8.8.8.8
+docker run --rm --entrypoint lookup iplegence:latest 8.8.8.8 /data/Superior-IP.mmdb
+```
+
+To rebuild the database inside the image, pass tokens and a writable data dir:
+
+```bash
+docker run --rm --entrypoint build \
+  -e IPINFO_TOKEN -e MAXMIND_LICENSE_KEY \
+  -v "$PWD/dist:/dist" -v "$PWD/download:/download" \
+  -v "$PWD/configs:/configs:ro" \
+  iplegence:latest
+```
+
 ## Consume the MMDB
 
 Any MaxMind-compatible reader works. Example with this repo's CLI:

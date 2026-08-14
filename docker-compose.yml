@@ -1,0 +1,13 @@
+services:
+  iplegence:
+    build: .
+    image: iplegence:latest
+    ports:
+      - "8080:8080"
+    environment:
+      MMDB_PATH: /data/Superior-IP.mmdb
+      LISTEN_ADDR: ":8080"
+    # Uncomment to use a host-built database instead of the image copy:
+    # volumes:
+    #   - ./dist/Superior-IP.mmdb:/data/Superior-IP.mmdb:ro
+    restart: unless-stopped

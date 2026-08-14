@@ -1,0 +1,15 @@
+.git
+.github
+.agent-secrets
+download
+doc
+docs
+.env
+.env.example
+*.md
+!README.md
+dist/*
+!dist/Superior-IP.mmdb
+**/*_test.go
+testdata/**
+!testdata/golden.json
