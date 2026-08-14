@@ -1,0 +1,2 @@
+network,is_proxy,is_vpn,is_tor,is_hosting,is_cdn,is_anonymous,is_relay,is_school
+1.2.3.0/24,1,0,0,1,0,0,0,0
