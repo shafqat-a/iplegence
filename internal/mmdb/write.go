@@ -45,6 +45,12 @@ func Write(rows []cidr.Row, dest string, maxBytes int64) (WriteResult, error) {
 			return WriteResult{}, fmt.Errorf("parse %s: %w", row.Prefix, err)
 		}
 		if err := tree.Insert(ipnet, m); err != nil {
+			var aliased *mmdbwriter.AliasedNetworkError
+			var reserved *mmdbwriter.ReservedNetworkError
+			if errors.As(err, &aliased) || errors.As(err, &reserved) {
+				// IPv4 is already stored in the aliased IPv6 holes (6to4/Teredo).
+				continue
+			}
 			return WriteResult{}, fmt.Errorf("insert %s: %w", row.Prefix, err)
 		}
 	}
