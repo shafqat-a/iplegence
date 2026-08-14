@@ -1,0 +1,116 @@
+download_dir: download
+output_dir: dist
+output_name: Superior-IP.mmdb
+max_bytes: 188743680   # 180 MiB
+download_timeout_seconds: 300
+download_retries: 3
+download_concurrency: 6
+
+sources:
+  - id: ipinfo_lite
+    enabled: true
+    kind: mmdb
+    url: "https://ipinfo.io/data/ipinfo_lite.mmdb?token=${IPINFO_TOKEN}"
+    path: download/ipinfo_lite.mmdb
+    license: "CC BY-SA 4.0"
+    attribution: "This product includes IP data from IPinfo (https://ipinfo.io)."
+    requires_env: [IPINFO_TOKEN]
+    required: true
+
+  - id: sapics_origin_asn
+    enabled: true
+    kind: mmdb
+    url: "https://github.com/sapics/ip-location-db/releases/download/latest/origin-asn.mmdb"
+    path: download/origin-asn.mmdb
+    license: "PDDL"
+    attribution: "ASN data from sapics/ip-location-db origin-asn (https://github.com/sapics/ip-location-db)."
+    required: true
+
+  - id: sapics_country
+    enabled: true
+    kind: mmdb
+    url: "https://github.com/sapics/ip-location-db/releases/download/latest/geo-whois-asn-country.mmdb"
+    path: download/geo-whois-asn-country.mmdb
+    license: "PDDL"
+    attribution: "Country data from sapics/ip-location-db geo-whois-asn-country (https://github.com/sapics/ip-location-db)."
+    required: true
+
+  - id: iptoasn
+    enabled: true
+    kind: tsv_gz
+    url: "https://iptoasn.com/data/ip2asn-combined.tsv.gz"
+    path: download/ip2asn-combined.tsv.gz
+    license: "Free (iptoasn.com)"
+    attribution: "ASN/country ranges from IPtoASN (https://iptoasn.com/)."
+    required: true
+
+  - id: geolite2_asn
+    enabled: true
+    kind: maxmind_tar_gz
+    url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN&license_key=${MAXMIND_LICENSE_KEY}&suffix=tar.gz"
+    path: download/GeoLite2-ASN.tar.gz
+    extract_glob: "**/GeoLite2-ASN.mmdb"
+    extract_to: download/GeoLite2-ASN.mmdb
+    license: "CC BY-SA 4.0 + MaxMind GeoLite2 EULA"
+    attribution: "This product includes GeoLite2 Data created by MaxMind, available from https://www.maxmind.com."
+    requires_env: [MAXMIND_LICENSE_KEY]
+    required: false
+
+  - id: openproxydb
+    enabled: true
+    kind: csv
+    url: "https://github.com/NetworkCats/OpenProxyDB/releases/latest/download/proxy_blocks.csv"
+    path: download/proxy_blocks.csv
+    license: "CC0 1.0"
+    attribution: "Privacy/hosting flags from OpenProxyDB (https://github.com/NetworkCats/OpenProxyDB)."
+    required: true
+
+  - id: aws_ranges
+    enabled: true
+    kind: json
+    url: "https://ip-ranges.amazonaws.com/ip-ranges.json"
+    path: download/aws-ip-ranges.json
+    license: "Public"
+    attribution: "AWS IP ranges from https://ip-ranges.amazonaws.com/ip-ranges.json."
+    flags: { is_hosting_provider: true }
+    required: true
+
+  - id: gcp_ranges
+    enabled: true
+    kind: json
+    url: "https://www.gstatic.com/ipranges/cloud.json"
+    path: download/gcp-cloud.json
+    license: "Public"
+    attribution: "Google Cloud IP ranges from https://www.gstatic.com/ipranges/cloud.json."
+    flags: { is_hosting_provider: true }
+    required: true
+
+  - id: azure_ranges
+    enabled: true
+    kind: azure_servicetags
+    url: "https://www.microsoft.com/download/details.aspx?id=56519"
+    path: download/azure-servicetags.json
+    license: "Public"
+    attribution: "Azure IP ranges from Microsoft Service Tags (download id 56519)."
+    flags: { is_hosting_provider: true }
+    required: false
+
+  - id: cloudflare_v4
+    enabled: true
+    kind: lines
+    url: "https://www.cloudflare.com/ips-v4"
+    path: download/cloudflare-ips-v4.txt
+    license: "Public"
+    attribution: "Cloudflare IPv4 ranges from https://www.cloudflare.com/ips-v4."
+    flags: { is_cdn: true, is_hosting_provider: true }
+    required: true
+
+  - id: cloudflare_v6
+    enabled: true
+    kind: lines
+    url: "https://www.cloudflare.com/ips-v6"
+    path: download/cloudflare-ips-v6.txt
+    license: "Public"
+    attribution: "Cloudflare IPv6 ranges from https://www.cloudflare.com/ips-v6."
+    flags: { is_cdn: true, is_hosting_provider: true }
+    required: true

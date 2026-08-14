@@ -1,0 +1,10 @@
+country: [sapics_country, ipinfo_lite, iptoasn]
+continent: [ipinfo_lite, sapics_country]
+asn_number: [ipinfo_lite, sapics_origin_asn, iptoasn, geolite2_asn]
+asn_org: [ipinfo_lite, iptoasn, geolite2_asn]
+asn_domain: [ipinfo_lite]
+city: [geolite2_city, dbip_city]          # unused in Phase 1; reserved
+location: [geolite2_city, dbip_city]
+subdivisions: [geolite2_city]
+postal: [geolite2_city]
+traits: or

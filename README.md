@@ -1,37 +1,73 @@
 # iplegence
 
+Code is Apache-2.0; bundled/released data remains under each source license listed in `ATTRIBUTION.md`.
+
 Private project: merge the best free/open IP intelligence sources into one
 MaxMind-compatible MMDB (`Superior-IP.mmdb`), ship it daily, then add a lookup API.
 
-This repo was bootstrapped on 2026-08-14. **Implementation has not started.**
-The spec and the Phase 0+1 plan are in the tree. Continue from those.
+This is a merged free/open dataset; do not treat it as commercial-grade accuracy.
 
-## Start here on a new machine
+## What you get
+
+A daily pipeline that downloads official IPinfo Lite, sapics country/ASN,
+iptoasn, optional GeoLite2-ASN, OpenProxyDB, and official cloud ranges
+(AWS, GCP, Azure, Cloudflare), field-merges them, and writes:
+
+- `dist/Superior-IP.mmdb`
+- `dist/Superior-IP.mmdb.sha256`
+- `dist/ATTRIBUTION.md`
+
+Phase 1 coverage is country + ASN + hosting/privacy flags. City, VPN lists,
+and the HTTP API are later phases.
+
+## Rebuild locally
+
+1. Copy `.env.example` to `.env` and set `IPINFO_TOKEN` (required for a live
+   IPinfo Lite download). `MAXMIND_LICENSE_KEY` is optional; GeoLite2-ASN is
+   skipped when unset.
+2. Load the env vars (`set -a; source .env; set +a`).
+3. Run:
 
 ```bash
-git clone git@github.com:shafqat-a/iplegence.git
-cd iplegence
+make test
+make build
+make lookup IP=8.8.8.8
+make validate
 ```
 
-Read, in this order:
+GitHub Actions secrets (Settings → Secrets and variables → Actions):
 
-1. [`AGENTS.md`](AGENTS.md) — handoff for the next engineer/agent
-2. [`doc/spec/superior-open-ip-intelligence.md`](doc/spec/superior-open-ip-intelligence.md) — transcribed spec
-3. [`docs/superpowers/plans/2026-08-14-phase0-1-mvp-pipeline.md`](docs/superpowers/plans/2026-08-14-phase0-1-mvp-pipeline.md) — executable implementation plan
-4. [`doc/session/chat.md`](doc/session/chat.md) — this session’s conversation
+- `IPINFO_TOKEN` — required for the daily release job
+- `MAXMIND_LICENSE_KEY` — optional
 
-Original image spec: [`doc/spec/grok_report.pdf`](doc/spec/grok_report.pdf) (8 pages, image-only).
+Do not commit `.env`, `download/`, `dist/`, or production `*.mmdb` files.
 
-## Status
+## Consume the MMDB
 
-| Item | State |
-|------|--------|
-| GitHub repo | Private: https://github.com/shafqat-a/iplegence |
-| Code | None yet (plan only) |
-| Next work | Execute Phase 0 + Phase 1 plan |
-| Secrets needed for a live build | `IPINFO_TOKEN` (required), `MAXMIND_LICENSE_KEY` (optional) |
+Any MaxMind-compatible reader works. Example with this repo's CLI:
 
-## License
+```bash
+go run ./cmd/lookup 8.8.8.8 dist/Superior-IP.mmdb
+```
 
-Code will be Apache-2.0. Released data stays under each source license
-(see the plan and future `ATTRIBUTION.md`). Do not claim commercial-grade accuracy.
+In Go, open `Superior-IP.mmdb` with `github.com/oschwald/maxminddb-golang`.
+The record shape is nested `country` / `continent` / `asn` / `traits`
+(see `doc/spec/superior-open-ip-intelligence.md` §3).
+
+## License & Attribution
+
+- **Code** is licensed under the Apache License 2.0 (`LICENSE`).
+- **Data** stays under each source license. A generated `ATTRIBUTION.md` is
+  shipped with every release and names every source that contributed.
+- This product includes IP data from [IPinfo](https://ipinfo.io) (CC BY-SA 4.0).
+- This product includes GeoLite2 Data created by [MaxMind](https://www.maxmind.com)
+  (CC BY-SA 4.0 + MaxMind GeoLite2 EULA) when that source is enabled.
+
+Never strip source credits. This is a merged free/open dataset; do not treat
+it as commercial-grade accuracy.
+
+## Spec and plan
+
+1. [`AGENTS.md`](AGENTS.md) — locked decisions
+2. [`doc/spec/superior-open-ip-intelligence.md`](doc/spec/superior-open-ip-intelligence.md)
+3. [`docs/superpowers/plans/2026-08-14-phase0-1-mvp-pipeline.md`](docs/superpowers/plans/2026-08-14-phase0-1-mvp-pipeline.md)
