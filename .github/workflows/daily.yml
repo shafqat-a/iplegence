@@ -1,0 +1,36 @@
+name: daily
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.25.x" }
+      - name: Build database
+        env:
+          IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+          MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
+        run: go run ./cmd/build
+      - name: Validate
+        run: go run ./cmd/validate dist/Superior-IP.mmdb
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$(date -u +%Y.%m.%d)"
+          gh release delete "$TAG" --yes || true
+          git tag -f "$TAG"
+          git push -f origin "$TAG"
+          gh release create "$TAG" \
+            dist/Superior-IP.mmdb \
+            dist/Superior-IP.mmdb.sha256 \
+            dist/ATTRIBUTION.md \
+            --title "$TAG" \
+            --notes "Daily iplegence build. See ATTRIBUTION.md for sources and licenses. This is a merged free/open dataset; do not treat it as commercial-grade accuracy."
