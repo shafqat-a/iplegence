@@ -1,0 +1,5 @@
+[
+  {"ip": "8.8.8.8", "country_iso": "US", "asn": 15169, "is_hosting_provider": true},
+  {"ip": "1.1.1.1", "country_iso": "AU", "is_cdn": true, "is_hosting_provider": true},
+  {"ip": "9.9.9.9", "country_iso": "US"}
+]
