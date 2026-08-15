@@ -228,3 +228,12 @@ sources:
     attribution: "Hetzner announced prefixes via RIPEstat AS24940 (https://stat.ripe.net/)."
     flags: { is_hosting_provider: true }
     required: true
+
+  - id: peeringdb
+    enabled: true
+    kind: peeringdb_api
+    url: "https://www.peeringdb.com/api/net"
+    path: download/peeringdb-net.json
+    license: "PeeringDB acceptable use (attribution)"
+    attribution: "Inferred usage_type from PeeringDB network types (https://www.peeringdb.com/). Self-declared and incomplete; not commercial usage_type."
+    required: false

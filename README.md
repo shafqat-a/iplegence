@@ -18,7 +18,12 @@ iptoasn, optional GeoLite2-ASN, OpenProxyDB, and official cloud ranges
 - `dist/ATTRIBUTION.md`
 
 Phase 2 coverage is country + city + coordinates, ASN, hosting/privacy flags,
-Tor exits, and iCloud Private Relay. The HTTP API is Phase 3.
+Tor exits, and iCloud Private Relay. Lookups also expose an inferred
+`traits.usage_type` (`residential` / `mobile` / `business` / `education` /
+`government` / `hosting`) from PeeringDB network types plus ASN-name
+heuristics, with `traits.usage_type_source` set to `peeringdb`, `asn_name`,
+or `prefix_flag`. Empty means unknown. This is not commercial IP2Proxy
+`usage_type`.
 
 ## Rebuild locally
 

@@ -5,19 +5,27 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/shafqat-a/iplegence/internal/config"
+	"github.com/shafqat-a/iplegence/internal/usage"
 )
+
+const userAgent = "iplegence/1.0 (+https://github.com/shafqat-a/iplegence)"
+
+const peeringDBPageSize = 250
 
 type Result struct {
 	Source config.SourceSpec
@@ -54,6 +62,9 @@ func Fetch(ctx context.Context, spec config.SourceSpec) error {
 	}
 	if err := os.MkdirAll(filepath.Dir(spec.Path), 0o755); err != nil {
 		return err
+	}
+	if spec.Kind == "peeringdb_api" {
+		return fetchPeeringDB(ctx, url, spec.Path, timeout)
 	}
 	if err := getToFile(ctx, url, spec.Path, timeout); err != nil {
 		if strings.Contains(spec.URL, "${YYYYMM}") {
@@ -155,18 +166,32 @@ func deadlineFrom(ctx context.Context) time.Duration {
 }
 
 func getToFile(ctx context.Context, url, dest string, timeout time.Duration) error {
+	return getToFileAttempts(ctx, url, dest, timeout, 3, time.Second)
+}
+
+func getToFileAttempts(ctx context.Context, url, dest string, timeout time.Duration, attempts int, backoff time.Duration) error {
+	if attempts < 1 {
+		attempts = 1
+	}
 	tmp := dest + ".tmp"
 	defer os.Remove(tmp)
 	var last error
-	backoff := time.Second
-	for attempt := 0; attempt < 3; attempt++ {
+	for attempt := 0; attempt < attempts; attempt++ {
 		if attempt > 0 {
+			wait := backoff
+			var se statusError
+			if errors.As(last, &se) && se.code == 429 && wait < 15*time.Second {
+				wait = 15 * time.Second
+			}
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-time.After(backoff):
+			case <-time.After(wait):
 			}
 			backoff *= 2
+			if backoff > time.Minute {
+				backoff = time.Minute
+			}
 		}
 		err := oneGet(ctx, url, tmp, timeout)
 		if err == nil {
@@ -213,6 +238,7 @@ func oneGet(ctx context.Context, url, dest string, timeout time.Duration) error 
 	if err != nil {
 		return err
 	}
+	req.Header.Set("User-Agent", userAgent)
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -240,6 +266,7 @@ func discoverAzureURL(ctx context.Context, pageURL string, timeout time.Duration
 	if err != nil {
 		return "", err
 	}
+	req.Header.Set("User-Agent", userAgent)
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -425,4 +452,91 @@ func extractZipFirst(archive, glob, dest string) error {
 		return os.Rename(tmp, dest)
 	}
 	return fmt.Errorf("no CSV member in %s", archive)
+}
+
+func fetchPeeringDB(ctx context.Context, baseURL, dest string, timeout time.Duration) error {
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+		return err
+	}
+	cat := usage.Catalog{}
+	skip := 0
+	for {
+		if skip > 0 {
+			select {
+			case <-ctx.Done():
+				if len(cat) > 0 {
+					return writePeeringDBCatalog(dest, cat)
+				}
+				return ctx.Err()
+			case <-time.After(500 * time.Millisecond):
+			}
+		}
+		pageURL, err := peeringDBPageURL(baseURL, peeringDBPageSize, skip)
+		if err != nil {
+			return err
+		}
+		tmp := dest + ".page"
+		err = getToFileAttempts(ctx, pageURL, tmp, timeout, 8, 5*time.Second)
+		if err != nil {
+			os.Remove(tmp)
+			if len(cat) > 0 {
+				if werr := writePeeringDBCatalog(dest, cat); werr == nil {
+					return nil
+				}
+			}
+			return err
+		}
+		body, err := os.ReadFile(tmp)
+		os.Remove(tmp)
+		if err != nil {
+			return err
+		}
+		var doc struct {
+			Data []usage.Network `json:"data"`
+		}
+		if err := json.Unmarshal(body, &doc); err != nil {
+			return fmt.Errorf("peeringdb page skip=%d: %w", skip, err)
+		}
+		if len(doc.Data) == 0 {
+			break
+		}
+		for _, n := range doc.Data {
+			cat.AddNetwork(n)
+		}
+		if len(doc.Data) < peeringDBPageSize {
+			break
+		}
+		skip += len(doc.Data)
+	}
+	if len(cat) == 0 {
+		return fmt.Errorf("peeringdb: empty catalog from %s", baseURL)
+	}
+	return writePeeringDBCatalog(dest, cat)
+}
+
+func writePeeringDBCatalog(dest string, cat usage.Catalog) error {
+	b, err := usage.CompactJSON(cat)
+	if err != nil {
+		return err
+	}
+	tmp := dest + ".tmp"
+	if err := os.WriteFile(tmp, b, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, dest)
+}
+
+func peeringDBPageURL(base string, limit, skip int) (string, error) {
+	u, err := url.Parse(base)
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	q.Set("limit", strconv.Itoa(limit))
+	q.Set("skip", strconv.Itoa(skip))
+	if q.Get("depth") == "" {
+		q.Set("depth", "0")
+	}
+	u.RawQuery = q.Encode()
+	return u.String(), nil
 }

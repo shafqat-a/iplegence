@@ -55,6 +55,8 @@ type Traits struct {
 	IsTorExitNode     bool
 	IsCDN             bool
 	IsRelay           bool
+	UsageType         string
+	UsageTypeSource   string
 }
 
 type Record struct {
@@ -273,6 +275,12 @@ func traitsMap(t Traits) mmdbtype.Map {
 	}
 	if t.IsRelay {
 		m[mmdbtype.String("is_relay")] = mmdbtype.Bool(true)
+	}
+	if t.UsageType != "" {
+		m[mmdbtype.String("usage_type")] = mmdbtype.String(t.UsageType)
+	}
+	if t.UsageTypeSource != "" {
+		m[mmdbtype.String("usage_type_source")] = mmdbtype.String(t.UsageTypeSource)
 	}
 	if len(m) == 0 {
 		return nil

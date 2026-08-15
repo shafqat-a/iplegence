@@ -36,13 +36,15 @@ type LookupRecord struct {
 		Domain string `maxminddb:"as_domain" json:"as_domain,omitempty"`
 	} `maxminddb:"asn" json:"asn,omitempty"`
 	Traits struct {
-		IsAnonymous       bool `maxminddb:"is_anonymous" json:"is_anonymous,omitempty"`
-		IsAnonymousVPN    bool `maxminddb:"is_anonymous_vpn" json:"is_anonymous_vpn,omitempty"`
-		IsHostingProvider bool `maxminddb:"is_hosting_provider" json:"is_hosting_provider,omitempty"`
-		IsPublicProxy     bool `maxminddb:"is_public_proxy" json:"is_public_proxy,omitempty"`
-		IsTorExitNode     bool `maxminddb:"is_tor_exit_node" json:"is_tor_exit_node,omitempty"`
-		IsCDN             bool `maxminddb:"is_cdn" json:"is_cdn,omitempty"`
-		IsRelay           bool `maxminddb:"is_relay" json:"is_relay,omitempty"`
+		IsAnonymous       bool   `maxminddb:"is_anonymous" json:"is_anonymous,omitempty"`
+		IsAnonymousVPN    bool   `maxminddb:"is_anonymous_vpn" json:"is_anonymous_vpn,omitempty"`
+		IsHostingProvider bool   `maxminddb:"is_hosting_provider" json:"is_hosting_provider,omitempty"`
+		IsPublicProxy     bool   `maxminddb:"is_public_proxy" json:"is_public_proxy,omitempty"`
+		IsTorExitNode     bool   `maxminddb:"is_tor_exit_node" json:"is_tor_exit_node,omitempty"`
+		IsCDN             bool   `maxminddb:"is_cdn" json:"is_cdn,omitempty"`
+		IsRelay           bool   `maxminddb:"is_relay" json:"is_relay,omitempty"`
+		UsageType         string `maxminddb:"usage_type" json:"usage_type,omitempty"`
+		UsageTypeSource   string `maxminddb:"usage_type_source" json:"usage_type_source,omitempty"`
 	} `maxminddb:"traits" json:"traits,omitempty"`
 }
 
@@ -64,5 +66,6 @@ func (r LookupRecord) Found() bool {
 		r.Traits.IsPublicProxy ||
 		r.Traits.IsTorExitNode ||
 		r.Traits.IsCDN ||
-		r.Traits.IsRelay
+		r.Traits.IsRelay ||
+		r.Traits.UsageType != ""
 }

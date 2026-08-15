@@ -15,6 +15,7 @@ import (
 	"github.com/shafqat-a/iplegence/internal/merge"
 	"github.com/shafqat-a/iplegence/internal/mmdb"
 	"github.com/shafqat-a/iplegence/internal/source"
+	"github.com/shafqat-a/iplegence/internal/usage"
 )
 
 type Options struct {
@@ -47,6 +48,7 @@ func Run(ctx context.Context, opt Options) error {
 
 	var blocks []cidr.Block
 	var used []string
+	catalog := usage.Catalog{}
 	for _, spec := range cfg.Sources {
 		if !spec.Enabled {
 			continue
@@ -57,6 +59,22 @@ func Run(ctx context.Context, opt Options) error {
 				return fmt.Errorf("required source %s missing file %s", spec.ID, path)
 			}
 			log.Printf("source %s: no file, skipping", spec.ID)
+			continue
+		}
+		if usage.IsCatalog(spec) {
+			cat, err := usage.Load(path)
+			if err != nil {
+				if spec.Required {
+					return fmt.Errorf("load %s: %w", spec.ID, err)
+				}
+				log.Printf("source %s: %v", spec.ID, err)
+				continue
+			}
+			log.Printf("source %s: %d asns", spec.ID, len(cat))
+			for asn, types := range cat {
+				catalog[asn] = types
+			}
+			used = append(used, spec.ID)
 			continue
 		}
 		part, err := source.Load(path, spec)
@@ -78,6 +96,7 @@ func Run(ctx context.Context, opt Options) error {
 	if err != nil {
 		return fmt.Errorf("merge: %w", err)
 	}
+	usage.Apply(rows, catalog)
 	dest := filepath.Join(cfg.OutputDir, cfg.OutputName)
 	res, err := mmdb.Write(rows, dest, cfg.MaxBytes)
 	if err != nil {

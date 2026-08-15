@@ -24,6 +24,9 @@ func TestToMMDBTypeOmitsEmptyAndFalse(t *testing.T) {
 	if traits[mmdbtype.String("is_hosting_provider")] != mmdbtype.Bool(true) {
 		t.Fatal("true hosting flag missing")
 	}
+	if _, ok := traits[mmdbtype.String("usage_type")]; ok {
+		t.Fatal("empty usage_type must be omitted")
+	}
 	country := m[mmdbtype.String("country")].(mmdbtype.Map)
 	names := country[mmdbtype.String("names")].(mmdbtype.Map)
 	if names[mmdbtype.String("en")] != mmdbtype.String("United States") {
@@ -44,5 +47,16 @@ func TestEqualAndEmpty(t *testing.T) {
 	b.Country.ISOCode = "DE"
 	if a.Equal(b) {
 		t.Fatal("different ISO should not be equal")
+	}
+}
+
+func TestToMMDBTypeWritesUsageType(t *testing.T) {
+	rec := schema.Record{Traits: schema.Traits{UsageType: "education", UsageTypeSource: "peeringdb"}}
+	traits := rec.ToMMDBType()[mmdbtype.String("traits")].(mmdbtype.Map)
+	if traits[mmdbtype.String("usage_type")] != mmdbtype.String("education") {
+		t.Fatal("usage_type missing")
+	}
+	if traits[mmdbtype.String("usage_type_source")] != mmdbtype.String("peeringdb") {
+		t.Fatal("usage_type_source missing")
 	}
 }

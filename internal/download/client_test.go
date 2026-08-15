@@ -10,12 +10,83 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/shafqat-a/iplegence/internal/config"
 	"github.com/shafqat-a/iplegence/internal/download"
 )
+
+func TestFetchPeeringDBPaginates(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("User-Agent") == "" {
+			t.Error("missing User-Agent")
+		}
+		skip := r.URL.Query().Get("skip")
+		switch skip {
+		case "", "0":
+			io.WriteString(w, `{"data":[{"asn":18,"info_type":"Educational/Research","info_types":["Educational/Research"]}]}`)
+		default:
+			io.WriteString(w, `{"data":[]}`)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	dest := filepath.Join(t.TempDir(), "peeringdb.json")
+	err := download.Fetch(context.Background(), config.SourceSpec{
+		ID:      "peeringdb",
+		Enabled: true,
+		Kind:    "peeringdb_api",
+		URL:     srv.URL + "/api/net",
+		Path:    dest,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(dest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(b, []byte(`"18"`)) || !bytes.Contains(b, []byte("Educational/Research")) {
+		t.Fatalf("compact catalog: %s", b)
+	}
+}
+
+func TestFetchPeeringDBKeepsPartialOn429(t *testing.T) {
+	var n atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if n.Add(1) == 1 {
+			io.WriteString(w, `{"data":[`+
+				`{"asn":18,"info_type":"Educational/Research","info_types":["Educational/Research"]}`+
+				strings.Repeat(`,{"asn":19,"info_type":"NSP","info_types":["NSP"]}`, 249)+
+				`]}`)
+			return
+		}
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+	t.Cleanup(srv.Close)
+	dest := filepath.Join(t.TempDir(), "peeringdb.json")
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	t.Cleanup(cancel)
+	err := download.Fetch(ctx, config.SourceSpec{
+		ID:      "peeringdb",
+		Enabled: true,
+		Kind:    "peeringdb_api",
+		URL:     srv.URL + "/api/net",
+		Path:    dest,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(dest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(b, []byte(`"18"`)) {
+		t.Fatalf("expected partial catalog, got %s", b)
+	}
+}
 
 func TestFetchWritesFile(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

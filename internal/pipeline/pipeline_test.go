@@ -28,6 +28,7 @@ func TestRunSkipDownload(t *testing.T) {
 			{ID: "openproxydb", Enabled: true, Kind: "csv", Path: filepath.Join(root, "testdata", "openproxy.csv"), Required: true},
 			{ID: "aws_ranges", Enabled: true, Kind: "json", Path: filepath.Join(root, "testdata", "aws.json"), Flags: config.Flags{IsHostingProvider: true}, Required: true},
 			{ID: "cloudflare_v4", Enabled: true, Kind: "lines", Path: filepath.Join(root, "testdata", "cloudflare-v4.txt"), Flags: config.Flags{IsCDN: true, IsHostingProvider: true}, Required: true},
+			{ID: "peeringdb", Enabled: true, Kind: "peeringdb_json", Path: filepath.Join(root, "testdata", "peeringdb.json"), Required: true},
 		},
 	}
 	cfgPath := filepath.Join(dir, "sources.yaml")
@@ -67,6 +68,30 @@ func TestRunSkipDownload(t *testing.T) {
 	}
 	if rec.Country.ISOCode != "US" || rec.ASN.Number != 15169 {
 		t.Fatalf("8.8.8.8 got %+v", rec)
+	}
+	if err := db.Lookup(netip.MustParseAddr("129.114.0.1")).Decode(&rec); err != nil {
+		t.Fatal(err)
+	}
+	if rec.Traits.UsageType != "education" || rec.Traits.UsageTypeSource != "peeringdb" {
+		t.Fatalf("129.114.0.1 usage %+v", rec.Traits)
+	}
+	if err := db.Lookup(netip.MustParseAddr("203.0.113.1")).Decode(&rec); err != nil {
+		t.Fatal(err)
+	}
+	if rec.Traits.UsageType != "education" || rec.Traits.UsageTypeSource != "asn_name" {
+		t.Fatalf("203.0.113.1 usage %+v", rec.Traits)
+	}
+	if err := db.Lookup(netip.MustParseAddr("198.51.100.1")).Decode(&rec); err != nil {
+		t.Fatal(err)
+	}
+	if rec.Traits.UsageType != "government" || rec.Traits.UsageTypeSource != "peeringdb" {
+		t.Fatalf("198.51.100.1 usage %+v", rec.Traits)
+	}
+	if err := db.Lookup(netip.MustParseAddr("10.0.0.1")).Decode(&rec); err != nil {
+		t.Fatal(err)
+	}
+	if rec.Traits.UsageType != "hosting" || rec.Traits.UsageTypeSource != "prefix_flag" {
+		t.Fatalf("10.0.0.1 usage %+v", rec.Traits)
 	}
 }
 
